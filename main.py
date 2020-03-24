@@ -8,35 +8,39 @@ plt.style.use('ggplot')
 
 def plot_result_graphs(plot_name, enn_stats, pnn_stats):
     fig_1 = plt.figure(figsize=(8, 4))
-    ax_1 = fig_1.add_subplot(111)
-    for name in ['enn', 'pnn']:
-        for k in ['train_loss', 'val_loss']:
-            if name is 'enn':
-                item = enn_stats[k]
-                ax_1.plot(np.arange(0, len(item)), 
-                          item, label='{}_{}'.format(name, k))
-            else:
-                item = pnn_stats[k]
-                ax_1r = ax_1.twinx()
-                ax_1r.plot(np.arange(0, len(item)), 
-                           item, 'r', label='{}_{}'.format(name, k))
-            
-    ax_1.legend(loc=0)
+    ax_1 = fig_1.add_subplot(111)    
+    line1 = ax_1.plot(np.arange(0, len(enn_stats['train_loss'])), 
+                      enn_stats['train_loss'], label='enn_train_loss')
+    line2 = ax_1.plot(np.arange(0, len(enn_stats['val_loss'])), 
+                      enn_stats['val_loss'], label='enn_val_loss')
+
+    ax_1r = ax_1.twinx()
+    line3 = ax_1r.plot(np.arange(0, len(pnn_stats['train_loss'])), 
+                       pnn_stats['train_loss'], '-m', label='pnn_train_loss')
+    line4 = ax_1r.plot(np.arange(0, len(pnn_stats['val_loss'])), 
+                        pnn_stats['val_loss'], '-k', label='pnn_val_loss')
+    lns = line1 + line2 + line3 + line4
+    labs = [l.get_label() for l in lns]
+    
+    ax_1.legend(lns, labs, loc=0)        
     ax_1.set_ylabel('Loss')
     ax_1.set_xlabel('Epoch number')
+    ax_1.grid(False)
+    ax_1r.grid(False)
 
     # Plot the change in the validation and training set accuracy over training.
     fig_2 = plt.figure(figsize=(8, 4))
     ax_2 = fig_2.add_subplot(111)
-    for name in ['enn', 'pnn']:
-        for k in ['train_acc', 'val_acc']:
-            if name is 'enn':
-                item = enn_stats[k]
-            else:
-                item = pnn_stats[k]
-            ax_2.plot(np.arange(0, len(item)), 
-                      item, label='{}_{}'.format(name, k))
-            
+    
+    ax_2.plot(np.arange(0, len(enn_stats['train_acc'])), 
+              enn_stats['train_acc'], label='enn_train_acc')
+    ax_2.plot(np.arange(0, len(enn_stats['val_acc'])), 
+              enn_stats['val_acc'], label='enn_val_acc')
+    ax_2.plot(np.arange(0, len(pnn_stats['train_acc'])), 
+              pnn_stats['train_acc'], '-m', label='pnn_train_acc')
+    ax_2.plot(np.arange(0, len(pnn_stats['val_loss'])), 
+              pnn_stats['val_acc'], '-k', label='pnn_val_acc')
+                    
     ax_2.legend(loc=0)
     ax_2.set_ylabel('Accuracy')
     ax_2.set_xlabel('Epoch number')
@@ -53,7 +57,7 @@ def plot_result_graphs(plot_name, enn_stats, pnn_stats):
 
 if __name__ == '__main__':
     batch_size = 100
-    num_epochs = 5
+    num_epochs = 3
     weight_decay_coefficient = 0
     use_gpu = True
     
@@ -96,6 +100,6 @@ if __name__ == '__main__':
                                         train_data=train_data_loader, val_data=val_data_loader,
                                         test_data=test_data_loader)  # build an experiment object
     
-    enn_states, pnn_stats = bridge_experiment.run_experiment()
+    enn_stats, pnn_stats = bridge_experiment.run_experiment()
     
-    plot_result_graphs('baseline', enn_states, pnn_stats)
+    plot_result_graphs('baseline', enn_stats, pnn_stats)
