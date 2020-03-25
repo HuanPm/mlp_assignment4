@@ -110,16 +110,14 @@ def plot_acc_recall_graphs(plot_name, accs, recalls):
         transparent=False, bbox_inches=None, pad_inches=0.1,
         frameon=None, metadata=None)
 
-if __name__ == '__main__':
-    experiment_name = 'test'
-    
+if __name__ == '__main__':  
     batch_size = 100
     num_epochs = 3
     weight_decay_coefficient = 0
     lr = 0.001
     use_gpu = True
     
-    use_enn = False
+    use_enn = True
     
     enn_input_dim = 52 + 2 + 318
     enn_output_dim = 52
