@@ -22,6 +22,7 @@ class ExperimentBuilder(nn.Module):
         :param test_data: An object of the DataProvider type. Contains the test set.
         :param weight_decay_coefficient: A float indicating the weight decay to use with the adam optimizer.
         :param use_gpu: A boolean indicating whether to use a GPU or not.
+        :param lr: A float indicating initial learning rate to use
         """
         super(ExperimentBuilder, self).__init__()
         
@@ -186,7 +187,6 @@ class ExperimentBuilder(nn.Module):
         :param best_validation_model_idx: The index of the best validation model to be stored for future use.
         :param best_validation_model_acc: The best validation accuracy to be stored for use at test time.
         :param state: The dictionary containing the system state.
-
         """
         self.state['network'] = self.state_dict()  # save network parameter and other variables.
         self.state['best_val_model_idx'] = best_validation_model_idx  # save current best val idx
@@ -199,13 +199,15 @@ class ExperimentBuilder(nn.Module):
         Load the network parameter state and the best val model idx and best val acc to be compared with the future val accuracies, in order to choose the best val model
         :param model_save_name: Name to use to save model without the epoch index
         :param model_idx: The index to save the model with.
-        :return: best val idx and best val model acc, also it loads the network state into the system state without returning it
         """
         state = torch.load(f=os.path.join("model", "{}_{}".format(model_save_name, str(model_idx))))
         self.load_state_dict(state_dict=state['network'])
         
         
     def eval_ordered_card(self):
+        """
+        Evaluate accuracy and recall of enn for each card
+        """
         self.eval()  # sets the system to validation mode
         TP = np.zeros(52)
         FP = np.zeros(52)
@@ -238,6 +240,9 @@ class ExperimentBuilder(nn.Module):
     
     
     def eval_ordered_bid(self):
+        """
+        Evaluate accuracy and recall of pnn for each biddding
+        """
         self.eval()
         TP = np.zeros(38)
         FP = np.zeros(38)
