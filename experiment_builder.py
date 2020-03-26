@@ -232,11 +232,11 @@ class ExperimentBuilder(nn.Module):
                 
                 pbar_test.update(1)  # update progress bar status
                           
-        acc = (TP + TN) / (TP + FP + FN + TN)
-        recall = TP / (TP + FN)
+        accs = (TP + TN) / (TP + FP + FN + TN)
+        recalls = TP / (TP + FN)
         #precision = TP / (TP + FP)
         
-        return acc, recall
+        return accs, recalls
     
     
     def eval_ordered_bid(self):
@@ -275,11 +275,54 @@ class ExperimentBuilder(nn.Module):
                     
                 pbar_test.update(1)  # update progress bar status
                           
-        acc = (TP + TN) / (TP + FP + FN + TN)
-        recall = TP / (TP + FN)
+        accs = (TP + TN) / (TP + FP + FN + TN)
+        recalls = TP / (TP + FN)
         #precision = TP / (TP + FP)
         
-        return acc, recall
+        return accs, recalls
+    
+    
+    def eval_bid_length(self):
+        """
+        Evaluate accuracy for each bidding length
+        """
+        self.eval()
+        
+        enn_accs = np.zeros(35)
+        pnn_accs = np.zeros(35)
+        num_bid_length = np.zeros(35)
+        with tqdm.tqdm(total=len(self.test_data)) as pbar_test:
+            for x, y, z in self.test_data:
+                x, y, z = x.float().to(device=self.device), y.float().to(
+                        device=self.device), z.float().to(device=self.device)  # convert data to pytorch tensors and send to the computation device
+                
+                lengths = torch.sum(x[:, -318:], dim=1)                
+                z = torch.argmax(z, 1)
+                if self.enn is not None:
+                    out = self.enn.forward(x)
+                    
+                    _, predicted = torch.topk(out.data, 13, dim=1)
+                    for i in np.arange(predicted.shape[0]):
+                        onehot_predicted = torch.zeros(out.data.shape[1], device=self.device)
+                        onehot_predicted[predicted[i]] = 1
+                        enn_accs[lengths[i].cpu().data.numpy().astype(int)] += ((onehot_predicted * y[i].data).sum() / 13).cpu()
+                        
+                    out = self.pnn.forward(torch.cat((x, out), 1))  # forward the data in the pnn
+                else:
+                    out = self.pnn.forward(x)
+                _, predicted = torch.max(out.data, 1)  # get argmax of predictions
+                
+                for i in np.arange(predicted.shape[0]):
+                    num_bid_length[lengths[i].cpu().data.numpy().astype(int)] += 1     
+                    pnn_accs[lengths[i].cpu().data.numpy().astype(int)] += predicted.eq(z.data).cpu().data.numpy()[i]
+        
+        pnn_accs = pnn_accs / num_bid_length
+        if self.enn is not None:
+            enn_accs = enn_accs / num_bid_length
+        
+            return enn_accs, pnn_accs
+        else:
+            return pnn_accs
         
         
     def run_experiment(self):

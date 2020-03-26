@@ -95,6 +95,22 @@ def plot_pnn_graphs(plot_name, pnn_stats):
         frameon=None, metadata=None)
     
     
+def plot_length_graphs(plot_name, enn_accs, pnn_accs):    
+    fig = plt.figure(figsize=(8, 4))
+    ax = fig.add_subplot(111)
+    ax.plot(np.arange(0, enn_accs.shape[0]), enn_accs, label='ENN')
+    ax.plot(np.arange(0, pnn_accs.shape[0]), pnn_accs, label='PNN')
+    
+    ax.legend(loc=0)
+    ax.set_ylabel('Accuracy')
+    ax.set_xlabel(plot_name)
+    
+    fig.savefig('./data/{}_acc.pdf'.format(plot_name), dpi=None, facecolor='w', edgecolor='w',
+        orientation='portrait', papertype=None, format='pdf',
+        transparent=False, bbox_inches=None, pad_inches=0.1,
+        frameon=None, metadata=None)
+    
+    
 def plot_acc_recall_graphs(plot_name, accs, recalls):    
     fig = plt.figure(figsize=(8, 4))
     ax = fig.add_subplot(111)
@@ -112,7 +128,7 @@ def plot_acc_recall_graphs(plot_name, accs, recalls):
 
 if __name__ == '__main__':  
     batch_size = 100
-    num_epochs = 10
+    num_epochs = 3
     weight_decay_coefficient = 0
     lr = 0.001
     use_gpu = True
@@ -176,6 +192,9 @@ if __name__ == '__main__':
     else:
         pnn_stats = bridge_experiment.run_experiment()
         plot_pnn_graphs('only_pnn', pnn_stats)
+    
+    enn_accs, pnn_accs = bridge_experiment.eval_bid_length()
+    plot_length_graphs('bidding_length', enn_accs, pnn_accs)
     
     if use_enn:
         enn_accs, enn_recalls = bridge_experiment.eval_ordered_card()
