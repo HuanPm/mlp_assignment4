@@ -112,14 +112,20 @@ def plot_acc_recall_graphs(plot_name, accs, recalls):
 
 if __name__ == '__main__':  
     batch_size = 100
-    num_epochs = 3
+    num_epochs = 10
     weight_decay_coefficient = 0
     lr = 0.001
     use_gpu = True
     
     use_enn = True
+    use_features = 0
     
-    enn_input_dim = 52 + 2 + 318
+    if use_features == 1:
+        enn_input_dim = 40 + 2 + 318
+    elif use_features == 2:
+        enn_input_dim = 52 + 20 + 2 + 318
+    else:
+        enn_input_dim = 52 + 2 + 318
     enn_output_dim = 52
     enn_hidden_dim = 1500
     enn_layers = 8
@@ -132,9 +138,9 @@ if __name__ == '__main__':
     pnn_hidden_dim = 1200
     pnn_layers = 10
     
-    train_data = data_providers.BridgeData(root='data', set_name='train')
-    val_data = data_providers.BridgeData(root='data', set_name='val')
-    test_data = data_providers.BridgeData(root='data', set_name='test')
+    train_data = data_providers.BridgeData(root='data', set_name='train', use_features=use_features)
+    val_data = data_providers.BridgeData(root='data', set_name='val', use_features=use_features)
+    test_data = data_providers.BridgeData(root='data', set_name='test', use_features=use_features)
     
     train_data_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=4)
     val_data_loader = DataLoader(val_data, batch_size=batch_size, shuffle=True, num_workers=4)
@@ -177,3 +183,4 @@ if __name__ == '__main__':
     
     pnn_accs, pnn_recalls = bridge_experiment.eval_ordered_bid()
     plot_acc_recall_graphs('ordered_bid', pnn_accs, pnn_recalls)
+    
