@@ -98,7 +98,8 @@ def plot_pnn_graphs(plot_name, pnn_stats):
 def plot_length_graphs(plot_name, enn_accs, pnn_accs):    
     fig = plt.figure(figsize=(8, 4))
     ax = fig.add_subplot(111)
-    ax.plot(np.arange(0, enn_accs.shape[0]), enn_accs, label='ENN')
+    if enn_accs is not None:
+        ax.plot(np.arange(0, enn_accs.shape[0]), enn_accs, label='ENN')
     ax.plot(np.arange(0, pnn_accs.shape[0]), pnn_accs, label='PNN')
     
     ax.legend(loc=0)
@@ -133,7 +134,7 @@ if __name__ == '__main__':
     lr = 0.001
     use_gpu = True
     
-    use_enn = True
+    use_enn = False
     use_features = 0
     
     if use_features == 1:
@@ -189,12 +190,17 @@ if __name__ == '__main__':
     if use_enn:
         enn_stats, pnn_stats = bridge_experiment.run_experiment()
         plot_result_graphs('baseline', enn_stats, pnn_stats)
+        
+        enn_accs, pnn_accs = bridge_experiment.eval_bid_length()
+        plot_length_graphs('bidding_length', enn_accs, pnn_accs)
     else:
         pnn_stats = bridge_experiment.run_experiment()
         plot_pnn_graphs('only_pnn', pnn_stats)
+        
+        pnn_accs = bridge_experiment.eval_bid_length()
+        plot_length_graphs('bidding_length', None, pnn_accs)
     
-    enn_accs, pnn_accs = bridge_experiment.eval_bid_length()
-    plot_length_graphs('bidding_length', enn_accs, pnn_accs)
+    
     
     if use_enn:
         enn_accs, enn_recalls = bridge_experiment.eval_ordered_card()
